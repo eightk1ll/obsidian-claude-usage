@@ -3,7 +3,8 @@
   "name": "Claude Usage",
   "version": "1.2.0",
   "minAppVersion": "1.13.0",
-  "description": "Zeigt die Auslastung der Claude-Subscription (5-Stunden-Fenster und Wochenfenster) in der Obsidian-Statusleiste.",
-  "author": "Alex",
+  "description": "Shows your Claude subscription usage (5-hour and weekly windows) in the status bar.",
+  "author": "Alex Herrmann",
+  "authorUrl": "https://github.com/eightk1ll",
   "isDesktopOnly": true
 }

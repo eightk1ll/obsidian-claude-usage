@@ -1,60 +1,66 @@
 # Claude Usage
 
-Obsidian-Plugin, das die Auslastung der Claude-Subscription in der Statusleiste anzeigt: 5-Stunden-Fenster, Wochenfenster und, falls vorhanden, das Wochenfenster für Top-Modelle.
+Obsidian plugin that shows your Claude subscription usage in the status bar: the 5-hour window, the weekly window and, if present, the weekly window for top-tier models.
 
-Das Plugin liest den OAuth-Token aus der Credentials-Datei von Claude Code und fragt damit den Usage-Endpunkt ab. Es schreibt selbst keinen Token und führt keinen Token-Refresh durch.
+The plugin reads the OAuth token from the Claude Code credentials file and uses it to query the usage endpoint. It never writes the token and never refreshes it itself.
 
-## Anzeige
+## Display
 
-Pro Fenster ein 14px-Ring, der Prozentwert und die Restzeit bis zum Reset (`47m`, `4h52m`, `4d7h`).
+One 14px ring per window, followed by the percentage and the time left until reset (`47m`, `4h52m`, `4d7h`).
 
-- Bis zur Warnschwelle: neutraler Ring
-- Ab Warnschwelle (Standard 75 %): Ring in `--text-warning`
-- Ab kritischer Schwelle (Standard 90 %): Ring in `--text-error` plus ⚠-Glyph, damit der Zustand nicht an Farbe allein hängt
+- Below the warning threshold: neutral ring
+- At or above the warning threshold (default 75 %): ring in `--text-warning`
+- At or above the critical threshold (default 90 %): ring in `--text-error` plus a ⚠ glyph, so the state does not depend on colour alone
 
-Tooltip über der Statusleiste zeigt alle Fenster mit Reset-Zeitpunkt und den Stand der letzten Abfrage. Klick auf das Element öffnet dieselben Werte als Notice.
+Hovering the status bar item shows all windows with their reset time and the timestamp of the last fetch. Clicking it shows the same values as a notice.
 
-## Voraussetzungen
+## Requirements
 
-- Obsidian 1.13.0 oder neuer, nur Desktop
-- Claude Code installiert und per `/login` angemeldet. Der Token muss den Scope `user:profile` haben. Ein Token aus `claude setup-token` reicht nicht.
-- Credentials-Datei unter `~/.claude/.credentials.json` (Pfad in den Einstellungen änderbar)
+- Obsidian 1.13.0 or newer, desktop only
+- Claude Code installed and signed in via `/login`. The token needs the `user:profile` scope. A token from `claude setup-token` is not sufficient.
+- Credentials file at `~/.claude/.credentials.json` (path configurable in settings)
 
 ## Installation
 
-Manuell:
+Manual:
 
-1. `main.js`, `manifest.json` und `styles.css` nach `<Vault>/.obsidian/plugins/claude-usage/` kopieren
-2. Obsidian neu laden und das Plugin unter *Community plugins* aktivieren
+1. Copy `main.js`, `manifest.json` and `styles.css` to `<Vault>/.obsidian/plugins/claude-usage/`
+2. Reload Obsidian and enable the plugin under *Community plugins*
 
-Über BRAT: Repository `eightk1ll/obsidian-claude-usage` als Beta-Plugin hinzufügen.
+Via BRAT: add `eightk1ll/obsidian-claude-usage` as a beta plugin.
 
-## Einstellungen
+## Settings
 
-| Option | Standard | Bedeutung |
+| Option | Default | Meaning |
 |---|---|---|
-| Credentials-Pfad | `~/.claude/.credentials.json` | Datei, aus der der Token gelesen wird |
-| Abfrageintervall | 15 Minuten | Abstand zwischen zwei API-Abfragen |
-| Warnschwelle | 75 % | Ab hier Ring in Warnfarbe |
-| Kritische Schwelle | 90 % | Ab hier Ring in Fehlerfarbe plus Glyph |
-| Restzeit anzeigen | an | Countdown bis zum Reset neben dem Prozentwert |
+| Credentials path | `~/.claude/.credentials.json` | File the token is read from |
+| Poll interval | 15 minutes | Time between two API requests |
+| Warning threshold | 75 % | Ring switches to warning colour |
+| Critical threshold | 90 % | Ring switches to error colour plus glyph |
+| Show time until reset | on | Countdown next to the percentage |
 
-Befehl `Auslastung jetzt aktualisieren` in der Command Palette löst eine manuelle Abfrage aus.
+The command `Refresh usage now` in the command palette triggers a manual fetch.
 
-## Fehlerverhalten und Backoff
+## Error handling and backoff
 
-Fehler, die sich nicht von selbst beheben (abgelaufener Token, 401, 403, 429, Netzwerkfehler), setzen eine Pause. Die Stufen steigen mit jedem weiteren Fehlschlag: 15, 30, 60, 120, 240 Minuten. Ein `Retry-After` vom Server verlängert die Pause, verkürzt sie aber nie. Die Pause gilt auch für den manuellen Klick.
+Errors that do not resolve on their own (expired token, 401, 403, 429, network errors) put the plugin on hold. The hold grows with each consecutive failure: 15, 30, 60, 120, 240 minutes. A `Retry-After` header from the server extends the hold but never shortens it. The hold also applies to manual refreshes.
 
-Der Backoff-Zustand wird in `data.json` gespeichert, damit ein Neustart von Obsidian die Sperre nicht zurücksetzt. Ohne diese Staffelung würde ein dauerhafter Fehler über Nacht hunderte Anfragen erzeugen und damit selbst ein 429 auslösen.
+The backoff state is persisted in `data.json`, so restarting Obsidian does not reset it. Without this, a permanent error would produce hundreds of requests overnight and trigger a 429 on its own.
 
-Ein abgelaufener Token wird vor der Anfrage erkannt und als Hinweis angezeigt. Lösung ist in allen Fällen: `claude` starten und `/login` ausführen.
+An expired token is detected before the request is sent and shown as a hint. The fix in all cases: run `claude` and execute `/login`.
 
-## Technik
+## Privacy
 
-- Endpunkt: `https://api.anthropic.com/api/oauth/usage` mit Header `anthropic-beta: oauth-2025-04-20`
-- Requests laufen über `requestUrl` aus der Obsidian-API
-- Kein Build-Schritt: `main.js` ist direkt lauffähig, keine Abhängigkeiten außer der Obsidian-API
+- The token is read from the local credentials file only. It is sent exclusively to `api.anthropic.com` as a bearer header.
+- No telemetry, no third-party services, no data stored outside `data.json` in the plugin folder.
+- Network access is limited to the usage endpoint listed below.
 
-## Lizenz
+## Technical notes
+
+- Endpoint: `https://api.anthropic.com/api/oauth/usage` with header `anthropic-beta: oauth-2025-04-20`
+- Requests go through `requestUrl` from the Obsidian API
+- No build step: `main.js` runs as is, no dependencies beyond the Obsidian API
+
+## License
 
 MIT

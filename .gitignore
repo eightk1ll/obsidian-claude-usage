@@ -1,4 +1,4 @@
-# Lokale Plugin-Einstellungen (enthalten Pfade und Backoff-Zustand)
+# Local plugin settings (contain paths and backoff state)
 data.json
-# Manuelle Backups
+# Manual backups
 *.bak-*
