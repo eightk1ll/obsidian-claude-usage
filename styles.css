@@ -1,10 +1,18 @@
+.claude-usage-status {
+  cursor: pointer;
+}
+
+.claude-usage-pending {
+  color: var(--text-muted);
+}
+
 .claude-usage-item {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-/* 2px Abstand zwischen den Gruppen, damit die Ringe nicht verschmelzen. */
+/* Gap between groups so the rings do not merge. */
 .claude-usage-item + .claude-usage-item {
   margin-left: 10px;
 }
@@ -14,8 +22,8 @@
   flex: 0 0 auto;
 }
 
-/* Text traegt Text-Tokens, nie die Signalfarbe. */
-/* Prozentwert ist der Primaerwert und bekommt deshalb den vollen Textton. */
+/* Text uses text tokens, never the signal colour. */
+/* The percentage is the primary value and therefore gets the full text tone. */
 .claude-usage-label {
   color: var(--text-normal);
   font-variant-numeric: tabular-nums;
@@ -27,8 +35,8 @@
   line-height: 1;
 }
 
-/* Restzeit ist Sekundaerinfo, tritt gegenueber dem Prozentwert zurueck.
-   --text-faint ist in der ohnehin gedimmten Statusleiste zu schwach, daher --text-muted. */
+/* Time until reset is secondary and steps back behind the percentage.
+   --text-faint is too weak in the already dimmed status bar, hence --text-muted. */
 .claude-usage-reset {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;

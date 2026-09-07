@@ -1,5 +1,7 @@
 # Claude Usage
 
+> **Disclaimer:** This plugin is an independent community project and is not affiliated with, endorsed by or supported by Anthropic. It uses an undocumented endpoint of the Claude OAuth API that may change or stop working at any time without notice.
+
 Obsidian plugin that shows your Claude subscription usage in the status bar: the 5-hour window, the weekly window and, if present, the weekly window for top-tier models.
 
 The plugin reads the OAuth token from the Claude Code credentials file and uses it to query the usage endpoint. It never writes the token and never refreshes it itself.
@@ -57,6 +59,7 @@ An expired token is detected before the request is sent and shown as a hint. The
 
 ## Technical notes
 
+- The usage endpoint is not part of Anthropic's public API. Expect breakage after upstream changes; the plugin fails closed (shows `Claude ?`, backs off) instead of retrying aggressively.
 - Endpoint: `https://api.anthropic.com/api/oauth/usage` with header `anthropic-beta: oauth-2025-04-20`
 - Requests go through `requestUrl` from the Obsidian API
 - No build step: `main.js` runs as is, no dependencies beyond the Obsidian API
