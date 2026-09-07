@@ -1,7 +1,7 @@
 {
   "id": "claude-usage",
   "name": "Claude Usage",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "minAppVersion": "1.13.0",
   "description": "Shows your Claude subscription usage (5-hour and weekly windows) in the status bar.",
   "author": "Alex Herrmann",

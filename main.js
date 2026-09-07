@@ -52,8 +52,6 @@ function readCredentials(filePath) {
   return {
     token: oauth.accessToken,
     expiresAt: oauth.expiresAt || 0,
-    refreshToken: oauth.refreshToken || null,
-    refreshTokenExpiresAt: oauth.refreshTokenExpiresAt || 0,
     scopes,
   };
 }
@@ -140,7 +138,7 @@ module.exports = class ClaudeUsagePlugin extends Plugin {
     this.statusEl = this.addStatusBarItem();
     this.statusEl.addClass('mod-clickable');
     this.statusEl.addClass('claude-usage-status');
-    this.statusEl.onclick = () => this.onStatusClick();
+    this.registerDomEvent(this.statusEl, 'click', () => this.onStatusClick());
 
     this.addSettingTab(new ClaudeUsageSettingTab(this.app, this));
     this.addCommand({
@@ -264,7 +262,10 @@ module.exports = class ClaudeUsagePlugin extends Plugin {
       this.failures = 0;
       this.persistBackoff();
     } catch (err) {
-      this.error = 'Could not parse response: ' + err.message;
+      // A 200 we cannot read means the endpoint changed. Retrying every poll
+      // will not fix that, so back off like any other persistent error.
+      this.fail('Could not parse response: ' + err.message + '.');
+      return;
     }
     this.render();
   }
