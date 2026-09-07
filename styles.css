@@ -1,0 +1,36 @@
+.claude-usage-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 2px Abstand zwischen den Gruppen, damit die Ringe nicht verschmelzen. */
+.claude-usage-item + .claude-usage-item {
+  margin-left: 10px;
+}
+
+.claude-usage-ring {
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* Text traegt Text-Tokens, nie die Signalfarbe. */
+/* Prozentwert ist der Primaerwert und bekommt deshalb den vollen Textton. */
+.claude-usage-label {
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+}
+
+.claude-usage-alert {
+  color: var(--text-error);
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* Restzeit ist Sekundaerinfo, tritt gegenueber dem Prozentwert zurueck.
+   --text-faint ist in der ohnehin gedimmten Statusleiste zu schwach, daher --text-muted. */
+.claude-usage-reset {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: 2px;
+}

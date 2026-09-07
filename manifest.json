@@ -1,0 +1,9 @@
+{
+  "id": "claude-usage",
+  "name": "Claude Usage",
+  "version": "1.2.0",
+  "minAppVersion": "1.13.0",
+  "description": "Zeigt die Auslastung der Claude-Subscription (5-Stunden-Fenster und Wochenfenster) in der Obsidian-Statusleiste.",
+  "author": "Alex",
+  "isDesktopOnly": true
+}
