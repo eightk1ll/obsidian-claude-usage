@@ -31,26 +31,14 @@ const DEFAULT_SETTINGS = {
 const KEYCHAIN_SERVICE = 'Claude Code-credentials';
 
 function readKeychainRaw() {
-  const base = ['find-generic-password', '-s', KEYCHAIN_SERVICE];
-  const attempts = [];
-  try {
-    // Prefer the current user's item, fall back to the first match for that service.
-    attempts.push(base.concat(['-a', os.userInfo().username, '-w']));
-  } catch (err) {
-    // os.userInfo() can throw without a passwd entry; the generic attempt still works.
+  // The login keychain holds exactly one item for this service, so no account
+  // filter is needed and no user identity has to be read.
+  const args = ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'];
+  const out = execFileSync('/usr/bin/security', args, { encoding: 'utf8', timeout: 5000 });
+  if (!out || !out.trim()) {
+    throw new Error('Keychain item is empty: ' + KEYCHAIN_SERVICE);
   }
-  attempts.push(base.concat(['-w']));
-
-  let lastErr = null;
-  for (const args of attempts) {
-    try {
-      const out = execFileSync('/usr/bin/security', args, { encoding: 'utf8', timeout: 5000 });
-      if (out && out.trim()) return out.trim();
-    } catch (err) {
-      lastErr = err;
-    }
-  }
-  throw lastErr || new Error('Keychain item not found: ' + KEYCHAIN_SERVICE);
+  return out.trim();
 }
 // -------------------------------------------------------------------------
 

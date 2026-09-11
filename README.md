@@ -52,6 +52,14 @@ The backoff state is persisted in `data.json`, so restarting Obsidian does not r
 
 An expired token is detected before the request is sent and shown as a hint. The fix in all cases: run `claude` and execute `/login`.
 
+## Why these permissions
+
+Obsidian's automated review flags three behaviours. All of them are needed for the plugin to work:
+
+- **Filesystem access (`fs`)**: reads `~/.claude/.credentials.json` on Linux and Windows. Nothing is written.
+- **Shell execution (`child_process`)**: on macOS only, runs `/usr/bin/security find-generic-password -s "Claude Code-credentials" -w` to read the token from the login keychain. No other command is executed, and only on `darwin`.
+- **Network**: one request to `api.anthropic.com/api/oauth/usage` per poll interval.
+
 ## Privacy
 
 - The token is read from the local credentials file or the macOS login keychain only. It is sent exclusively to `api.anthropic.com` as a bearer header.
