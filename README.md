@@ -4,7 +4,7 @@
 
 Obsidian plugin that shows your Claude subscription usage in the status bar: the 5-hour window, the weekly window and, if present, the weekly window for top-tier models.
 
-The plugin reads the OAuth token from the Claude Code credentials file and uses it to query the usage endpoint. It never writes the token and never refreshes it itself.
+The plugin reads the OAuth token from the Claude Code credentials file (or the login keychain on macOS) and uses it to query the usage endpoint. It never writes the token and never refreshes it itself.
 
 ## Display
 
@@ -20,7 +20,8 @@ Hovering the status bar item shows all windows with their reset time and the tim
 
 - Obsidian 1.13.0 or newer, desktop only
 - Claude Code installed and signed in via `/login`. The token needs the `user:profile` scope. A token from `claude setup-token` is not sufficient.
-- Credentials file at `~/.claude/.credentials.json` (path configurable in settings)
+- Linux and Windows: credentials file at `~/.claude/.credentials.json` (path configurable in settings)
+- macOS: Claude Code stores the credentials in the login keychain (service `Claude Code-credentials`). The plugin reads them via `/usr/bin/security`; the file is only a fallback. If macOS asks for keychain access, choose "Always Allow".
 
 ## Installation
 
@@ -35,7 +36,7 @@ Via BRAT: add `eightk1ll/obsidian-claude-usage` as a beta plugin.
 
 | Option | Default | Meaning |
 |---|---|---|
-| Credentials path | `~/.claude/.credentials.json` | File the token is read from |
+| Credentials path | `~/.claude/.credentials.json` | File the token is read from (Linux, Windows; fallback on macOS) |
 | Poll interval | 15 minutes | Time between two API requests |
 | Warning threshold | 75 % | Ring switches to warning colour |
 | Critical threshold | 90 % | Ring switches to error colour plus glyph |
@@ -53,7 +54,7 @@ An expired token is detected before the request is sent and shown as a hint. The
 
 ## Privacy
 
-- The token is read from the local credentials file only. It is sent exclusively to `api.anthropic.com` as a bearer header.
+- The token is read from the local credentials file or the macOS login keychain only. It is sent exclusively to `api.anthropic.com` as a bearer header.
 - No telemetry, no third-party services, no data stored outside `data.json` in the plugin folder.
 - Network access is limited to the usage endpoint listed below.
 

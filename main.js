@@ -4,6 +4,7 @@ const { Plugin, Notice, PluginSettingTab, Setting, requestUrl } = require('obsid
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const USAGE_ENDPOINT = 'https://api.anthropic.com/api/oauth/usage';
 const OAUTH_BETA_HEADER = 'oauth-2025-04-20';
@@ -23,13 +24,58 @@ const DEFAULT_SETTINGS = {
   showReset: true,
 };
 
-/** Reads the OAuth token from the Claude Code credentials file. */
-function readCredentials(filePath) {
-  let raw;
+// --- macOS keychain support (MACOS_KEYCHAIN_PATCH) ------------------------
+// On macOS, Claude Code keeps its credentials in the login keychain instead of
+// ~/.claude/.credentials.json, so that file does not exist there. Read the same
+// JSON payload from the keychain first and only fall back to the file.
+const KEYCHAIN_SERVICE = 'Claude Code-credentials';
+
+function readKeychainRaw() {
+  const base = ['find-generic-password', '-s', KEYCHAIN_SERVICE];
+  const attempts = [];
   try {
-    raw = fs.readFileSync(filePath, 'utf8');
+    // Prefer the current user's item, fall back to the first match for that service.
+    attempts.push(base.concat(['-a', os.userInfo().username, '-w']));
   } catch (err) {
-    throw new Error('Cannot read credentials file: ' + filePath);
+    // os.userInfo() can throw without a passwd entry; the generic attempt still works.
+  }
+  attempts.push(base.concat(['-w']));
+
+  let lastErr = null;
+  for (const args of attempts) {
+    try {
+      const out = execFileSync('/usr/bin/security', args, { encoding: 'utf8', timeout: 5000 });
+      if (out && out.trim()) return out.trim();
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('Keychain item not found: ' + KEYCHAIN_SERVICE);
+}
+// -------------------------------------------------------------------------
+
+/** Reads the OAuth token from the keychain (macOS) or the credentials file. */
+function readCredentials(filePath) {
+  let raw = null;
+
+  if (process.platform === 'darwin') {
+    try {
+      raw = readKeychainRaw();
+    } catch (err) {
+      raw = null;
+    }
+  }
+
+  if (raw === null) {
+    try {
+      raw = fs.readFileSync(filePath, 'utf8');
+    } catch (err) {
+      throw new Error(
+        process.platform === 'darwin'
+          ? 'No credentials in keychain (' + KEYCHAIN_SERVICE + ') and cannot read file: ' + filePath
+          : 'Cannot read credentials file: ' + filePath
+      );
+    }
   }
 
   let parsed;
@@ -421,7 +467,7 @@ class ClaudeUsageSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Credentials file path')
-      .setDesc('Read only, never written. Claude Code itself renews the token. The token leaves this device only towards api.anthropic.com.')
+      .setDesc('Read only, never written. Claude Code itself renews the token. The token leaves this device only towards api.anthropic.com. On macOS the login keychain (service "Claude Code-credentials") is tried first and this file only as a fallback.')
       .addText((text) =>
         text
           .setValue(this.plugin.settings.credentialsPath)
